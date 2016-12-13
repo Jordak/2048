@@ -25,3 +25,13 @@ Tile.prototype.serialize = function () {
     value: this.value
   };
 };
+
+Tile.prototype.saveForUndo = function(next) {
+  var copy = this.serialize();
+  copy.previousPosition = {
+    x: next.x,
+    y: next.y
+  };
+
+  return copy;
+};
