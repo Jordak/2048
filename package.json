@@ -1,0 +1,21 @@
+{
+  "name": "jordak-2048",
+  "version": "1.0.0",
+  "description": "Jordak's version of 2048 with undo",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jordak/jordak.github.io.git"
+  },
+  "author": "Jordak",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Jordak/jordak.github.io/issues"
+  },
+  "homepage": "https://github.com/Jordak/jordak.github.io#readme"
+}

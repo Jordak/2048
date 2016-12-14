@@ -10,6 +10,7 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
   this.inputManager.on("restart", this.restart.bind(this));
   this.inputManager.on("keepPlaying", this.keepPlaying.bind(this));
 
+  this.undoStack = [];
   this.setup();
 }
 
@@ -43,12 +44,14 @@ GameManager.prototype.setup = function () {
     this.over        = previousState.over;
     this.won         = previousState.won;
     this.keepPlaying = previousState.keepPlaying;
+    this.seed        = previousState.seed;
   } else {
     this.grid        = new Grid(this.size);
     this.score       = 0;
     this.over        = false;
     this.won         = false;
     this.keepPlaying = false;
+    this.seed        = Math.random();
 
     // Add the initial tiles
     this.addStartTiles();
@@ -68,6 +71,7 @@ GameManager.prototype.addStartTiles = function () {
 // Adds a tile in a random position
 GameManager.prototype.addRandomTile = function () {
   if (this.grid.cellsAvailable()) {
+    Math.seedrandom(this.seed + this.score);
     var value = Math.random() < 0.9 ? 2 : 4;
     var tile = new Tile(this.grid.randomAvailableCell(), value);
 
@@ -105,7 +109,8 @@ GameManager.prototype.serialize = function () {
     score:       this.score,
     over:        this.over,
     won:         this.won,
-    keepPlaying: this.keepPlaying
+    keepPlaying: this.keepPlaying,
+    seed:        this.seed
   };
 };
 
@@ -128,8 +133,33 @@ GameManager.prototype.moveTile = function (tile, cell) {
 
 // Move tiles on the grid in the specified direction
 GameManager.prototype.move = function (direction) {
-  // 0: up, 1: right, 2: down, 3: left
+  // 0: up, 1: right, 2: down, 3: left, -1: undo
   var self = this;
+
+  if (direction === -1) {
+    if (this.undoStack.length) {
+      var prev = this.undoStack.pop();
+
+      this.grid.cells = this.grid.empty();
+      this.score = prev.score;
+      this.won = prev.won;
+      this.keepPlaying = prev.keepPlaying;
+      for (var i in prev.tiles) {
+        var t = prev.tiles[i];
+        var tile = new Tile(t.position, t.value);
+        tile.previousPosition = {
+          x: t.previousPosition.x,
+          y: t.previousPosition.y
+        };
+        this.grid.cells[tile.x][tile.y] = tile;
+      }
+      this.over = false;
+      this.actuator.continueGame();
+      this.actuate();
+    }
+
+    return;
+  }
 
   if (this.isGameTerminated()) return; // Don't do anything if the game's over
 
@@ -138,6 +168,7 @@ GameManager.prototype.move = function (direction) {
   var vector     = this.getVector(direction);
   var traversals = this.buildTraversals(vector);
   var moved      = false;
+  var undo       = {score: this.score, won: this.won, keepPlaying: this.keepPlaying, tiles: []};
 
   // Save the current tile positions and remove merger information
   this.prepareTiles();
@@ -154,6 +185,9 @@ GameManager.prototype.move = function (direction) {
 
         // Only one merger per row traversal?
         if (next && next.value === tile.value && !next.mergedFrom) {
+          // We need to save the tile since it will get removed
+          undo.tiles.push(tile.saveForUndo(positions.next));
+          
           var merged = new Tile(positions.next, tile.value * 2);
           merged.mergedFrom = [tile, next];
 
@@ -167,8 +201,9 @@ GameManager.prototype.move = function (direction) {
           self.score += merged.value;
 
           // The mighty 2048 tile
-          if (merged.value === 2048) self.won = true;
+          if (merged.value === 2048 && !self.won) self.won = true;
         } else {
+          undo.tiles.push(tile.saveForUndo(positions.farthest));
           self.moveTile(tile, positions.farthest);
         }
 
@@ -185,6 +220,8 @@ GameManager.prototype.move = function (direction) {
     if (!this.movesAvailable()) {
       this.over = true; // Game over!
     }
+
+    this.undoStack.push(undo);
 
     this.actuate();
   }
