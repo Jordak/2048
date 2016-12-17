@@ -45,6 +45,7 @@ GameManager.prototype.setup = function () {
     this.won         = previousState.won;
     this.keepPlaying = previousState.keepPlaying;
     this.seed        = previousState.seed;
+    this.cheated     = previousState.cheated;
   } else {
     this.grid        = new Grid(this.size);
     this.score       = 0;
@@ -52,6 +53,7 @@ GameManager.prototype.setup = function () {
     this.won         = false;
     this.keepPlaying = false;
     this.seed        = Math.random();
+    this.cheated     = false;
 
     // Add the initial tiles
     this.addStartTiles();
@@ -81,7 +83,7 @@ GameManager.prototype.addRandomTile = function () {
 
 // Sends the updated grid to the actuator
 GameManager.prototype.actuate = function () {
-  if (this.storageManager.getBestScore() < this.score) {
+  if (!this.cheated && this.storageManager.getBestScore() < this.score) {
     this.storageManager.setBestScore(this.score);
   }
 
@@ -97,7 +99,8 @@ GameManager.prototype.actuate = function () {
     over:       this.over,
     won:        this.won,
     bestScore:  this.storageManager.getBestScore(),
-    terminated: this.isGameTerminated()
+    terminated: this.isGameTerminated(),
+    cheated:    this.cheated
   });
 
 };
@@ -110,7 +113,8 @@ GameManager.prototype.serialize = function () {
     over:        this.over,
     won:         this.won,
     keepPlaying: this.keepPlaying,
-    seed:        this.seed
+    seed:        this.seed,
+    cheated:     this.cheated
   };
 };
 
@@ -138,6 +142,7 @@ GameManager.prototype.move = function (direction) {
 
   if (direction === -1) {
     if (this.undoStack.length) {
+      this.cheated = true;
       var prev = this.undoStack.pop();
 
       this.grid.cells = this.grid.empty();

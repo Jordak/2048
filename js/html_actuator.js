@@ -23,6 +23,7 @@ HTMLActuator.prototype.actuate = function (grid, metadata) {
 
     self.updateScore(metadata.score);
     self.updateBestScore(metadata.bestScore);
+    self.handleCheating(metadata.cheated);
 
     if (metadata.terminated) {
       if (metadata.over) {
@@ -122,6 +123,14 @@ HTMLActuator.prototype.updateScore = function (score) {
 
 HTMLActuator.prototype.updateBestScore = function (bestScore) {
   this.bestContainer.textContent = bestScore;
+};
+
+HTMLActuator.prototype.handleCheating = function (cheated) {
+  if (cheated) {
+    this.bestContainer.classList.add("cheated");
+  } else {
+    this.bestContainer.classList.remove("cheated");
+  }
 };
 
 HTMLActuator.prototype.message = function (won) {
