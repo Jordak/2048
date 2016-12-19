@@ -404,6 +404,12 @@ hr {
         @include smaller($mobile-threshold) {
           font-size: 15px;
         }
+      } @else if $power >= 100000 {
+        font-size: 25px;
+
+        @include smaller($mobile-threshold) {
+          font-size: 5;
+        }
       }
     }
 

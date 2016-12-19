@@ -71,10 +71,18 @@ GameManager.prototype.addStartTiles = function () {
 };
 
 // Adds a tile in a random position
-GameManager.prototype.addRandomTile = function () {
+GameManager.prototype.addRandomTile = function (invertChance) {
   if (this.grid.cellsAvailable()) {
     Math.seedrandom(this.seed + this.score);
-    var value = Math.random() < 0.9 ? 2 : 4;
+    
+    var randomVal = Math.random();
+    var isTwo = randomVal < 0.9;
+    if (invertChance) {
+      this.cheated = true;
+      isTwo = !isTwo;
+    }
+    
+    var value = isTwo ? 2 : 4;
     var tile = new Tile(this.grid.randomAvailableCell(), value);
 
     this.grid.insertTile(tile);
@@ -136,10 +144,12 @@ GameManager.prototype.moveTile = function (tile, cell) {
 };
 
 // Move tiles on the grid in the specified direction
-GameManager.prototype.move = function (direction) {
+GameManager.prototype.move = function (input) {
   // 0: up, 1: right, 2: down, 3: left, -1: undo
   var self = this;
 
+  var direction = input.direction === undefined ? input : input.direction;
+  var invertChance = input.invertChance;
   if (direction === -1) {
     if (this.undoStack.length) {
       this.cheated = true;
@@ -220,7 +230,7 @@ GameManager.prototype.move = function (direction) {
   });
 
   if (moved) {
-    this.addRandomTile();
+    this.addRandomTile(invertChance);
 
     if (!this.movesAvailable()) {
       this.over = true; // Game over!

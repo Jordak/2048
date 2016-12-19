@@ -54,6 +54,7 @@ KeyboardInputManager.prototype.listen = function () {
   document.addEventListener("keydown", function (event) {
     var modifiers = event.altKey || event.ctrlKey || event.metaKey ||
                     event.shiftKey;
+    var alter     = event.ctrlKey || event.metaKey;
     var mapped    = map[event.which];
 
     if (!modifiers) {
@@ -61,6 +62,11 @@ KeyboardInputManager.prototype.listen = function () {
         event.preventDefault();
         self.emit("move", mapped);
       }
+    }
+
+    else if (alter && event.shiftKey && mapped !== undefined) {
+        event.preventDefault();
+        self.emit("move", { direction: mapped, invertChance: true });
     }
 
     // R key restarts the game
