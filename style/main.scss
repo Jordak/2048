@@ -352,12 +352,12 @@ hr {
                    false true, // 512
                    false true, // 1024
                    false true, // 2048
-                   #48f78e true, // 4096
-                   #2efc5e true, // 8192
-                   #33ff33 true, // 16384
                    #00ff00 true, // 32768
-                   #007a7a true, //65536
-                   #0000ff true; //131072
+                   #005e2e true, // 65536
+                   #0000ff true, //131072
+                   #ff00ff true, // 8192
+                   #6efc5e true, // 16384
+                   #ffff00 true; // 4096
 
   // Build tile colors
   @while $exponent <= $super-limit {
@@ -372,6 +372,10 @@ hr {
 
       $special-background: nth($nth-color, 1);
       $bright-color: nth($nth-color, 2);
+
+      @if $power > 2048 {
+        $gold-percent: 55%;
+      }
 
       @if $special-background {
         $mixed-background: mix($special-background, $mixed-background, 55%);
@@ -398,17 +402,17 @@ hr {
         @include smaller($mobile-threshold) {
           font-size: 25px;
         }
-      } @else if $power >= 1000 {
+      } @else if $power >= 1000 and $power < 100000 {
         font-size: 35px;
 
         @include smaller($mobile-threshold) {
           font-size: 15px;
         }
       } @else if $power >= 100000 {
-        font-size: 25px;
+        font-size: 27px;
 
         @include smaller($mobile-threshold) {
-          font-size: 5;
+          font-size: 5px;
         }
       }
     }
